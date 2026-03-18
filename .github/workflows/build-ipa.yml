@@ -1,45 +1,5 @@
-name: Build iOS IPA
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: macos-14
-    timeout-minutes: 30
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
-
-      - name: Build app (unsigned)
-        run: |
-          cd FlipperFAP
-          xcodebuild \
-            -project FlipperFAP.xcodeproj \
-            -scheme FlipperFAP \
-            -configuration Release \
-            -sdk iphoneos \
-            -destination "generic/platform=iOS" \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            CONFIGURATION_BUILD_DIR=$PWD/build \
-            build
-
-      - name: Package as IPA
-        run: |
-          cd FlipperFAP
-          mkdir -p Payload
-          cp -r build/FlipperFAP.app Payload/
-          zip -r FlipperFAP.ipa Payload
-
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: FlipperFAP.ipa
-          path: FlipperFAP/FlipperFAP.ipa
-          retention-days: 30
+{
+  "returncode" : 0,
+  "stdout" : "name: Build iOS IPA\n\non:\n  workflow_dispatch:\n\njobs:\n  build:\n    runs-on: macos-14\n    timeout-minutes: 30\n\n    steps:\n      - name: Checkout\n        uses: actions\/checkout@v4\n\n      - name: Select Xcode 15.4\n        run: sudo xcode-select -s \/Applications\/Xcode_15.4.app\n\n      - name: Install xcodegen\n        run: brew install xcodegen\n\n      - name: Generate Xcode project\n        run: |\n          cat > FlipperFAP\/project.yml << 'YAML'\n          name: FlipperFAP\n          options:\n            bundleIdPrefix: com.joelewis\n            deploymentTarget:\n              iOS: \"16.0\"\n          targets:\n            FlipperFAP:\n              type: application\n              platform: iOS\n              deploymentTarget: \"16.0\"\n              sources:\n                - FlipperFAP\n              info:\n                path: FlipperFAP\/Info.plist\n              settings:\n                PRODUCT_BUNDLE_IDENTIFIER: com.joelewis.FlipperFAP\n                SWIFT_VERSION: \"5.0\"\n                TARGETED_DEVICE_FAMILY: \"1,2\"\n          YAML\n          cd FlipperFAP && xcodegen generate\n\n      - name: Build app (unsigned)\n        run: |\n          cd FlipperFAP\n          xcodebuild \\\n            -project FlipperFAP.xcodeproj \\\n            -scheme FlipperFAP \\\n            -configuration Release \\\n            -sdk iphoneos \\\n            -destination \"generic\/platform=iOS\" \\\n            CODE_SIGN_IDENTITY=\"\" \\\n            CODE_SIGNING_REQUIRED=NO \\\n            CODE_SIGNING_ALLOWED=NO \\\n            CONFIGURATION_BUILD_DIR=$PWD\/build \\\n            build\n\n      - name: Package as IPA\n        run: |\n          cd FlipperFAP\n          mkdir -p Payload\n          cp -r build\/FlipperFAP.app Payload\/\n          zip -r FlipperFAP.ipa Payload\n          echo \"✅ IPA created: $(ls -lh FlipperFAP.ipa)\"\n\n      - name: Upload IPA\n        uses: actions\/upload-artifact@v4\n        with:\n          name: FlipperFAP.ipa\n          path: FlipperFAP\/FlipperFAP.ipa\n          retention-days: 30\n",
+  "stderr" : ""
+}
